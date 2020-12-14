@@ -43,8 +43,7 @@ def home():
             f"/api/v1.0/precipitation <br/>"
             f"/api/v1.0/stations<br/>"
             f"/api/v1.0/tobs<br/>"
-            f"/api/v1.0/<start><br/>"
-            f"/api/v1.0/<end><br/>")
+            )
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
@@ -105,28 +104,67 @@ def tobs():
 
     #Query data
     sel_data = [Measurement.station,Measurement.date,
-       Measurement.tobs]
+       func.max(Measurement.tobs)]
     tobs = session.query(*sel_data).\
-    filter(func.DATE(Measurement.date)>='2017-01-01').\
+    filter(func.DATE(Measurement.date)>='2016-01-01').\
     order_by(Measurement.tobs.desc()).all()
 
     #Close Session
     session.close()
 
 
-    
-
 
     return jsonify(tobs)
-@app.route("/api/v1.0/start")
-def start():
-    print("Server received request for 'About' page...")
-    return "Welcome to my 'About' page!"
 
-@app.route("/api/v1.0/end")
+
+@app.route("/api/v1.0/<key>/<value>")
+def start(key,value):
+    print("Server received request for 'Start Search' page...")
+
+    #Create Session
+    session=Session(engine)
+    #Query
+    temp = [Measurement.id, 
+       func.min(Measurement.tobs), 
+       func.max(Measurement.tobs), 
+       func.avg(Measurement.tobs)]
+    temp_find = session.query(*temp)
+
+    #Close session
+    session.close()
+
+    #for x in temp_find:
+        #if x[key] == value:
+            #return jsonify(x)
+
+    #return jsonify({"error": f"Character with key '{key}' with value '{value}' not found."}), 404
+    return jsonify(temp_find)
+
+@app.route("/api/v1.0/<start>/<end>")
 def end():
     print("Server received request for 'About' page...")
     return "Welcome to my 'About' page!"
+
+
+
+
+@app.route("/api/v1.0/trial")
+def trial():
+    print("Server received request for 'trial' page...")
+ #Create Session
+    session=Session(engine)
+    #Query
+    temp = [Measurement.station, 
+       func.min(Measurement.tobs), 
+       func.max(Measurement.tobs), 
+       func.avg(Measurement.tobs)]
+    temp_find = session.query(*temp).all()
+
+    #Close session
+    session.close()
+
+
+    return jsonify(temp_find)
 
 if __name__ == "__main__":
     app.run(debug=True)
