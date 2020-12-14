@@ -54,7 +54,10 @@ def precipitation():
     session = Session(engine)
 
     #Query for Precp data
+    #Create a one line query for troubleshooting 
     #prcp_query=session.query(Measurement.prcp,Measurement.date).filter(func.DATE(Measurement.date)>='2017-01-01')
+
+    # Use a dictionary to gather the data and organize it
     sel = [Measurement.date,Measurement.prcp
       ]
     prcp_query = session.query(*sel).\
@@ -77,14 +80,44 @@ def precipitation():
 
 @app.route("/api/v1.0/stations")
 def stations():
-    print("Server received request for 'About' page...")
-    return "Welcome to my 'About' page!"
+    print("Server received request for 'stations' page...")
+
+    #Create Session
+    session=Session(engine)
+
+    #Query data
+    station=session.query(Station.station).all()
+
+    #Close Session
+    session.close()
+
+    #Convert to lise
+    stations_all=list(np.ravel(station))
+    
+    return jsonify(stations_all)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
-    print("Server received request for 'About' page...")
-    return "Welcome to my 'About' page!"
+    print("Server received request for 'tobs' page...")
 
+    #Create Session
+    session=Session(engine)
+
+    #Query data
+    sel_data = [Measurement.station,Measurement.date,
+       Measurement.tobs]
+    tobs = session.query(*sel_data).\
+    filter(func.DATE(Measurement.date)>='2017-01-01').\
+    order_by(Measurement.tobs.desc()).all()
+
+    #Close Session
+    session.close()
+
+
+    
+
+
+    return jsonify(tobs)
 @app.route("/api/v1.0/start")
 def start():
     print("Server received request for 'About' page...")
