@@ -1,20 +1,29 @@
-from flask import Flask
+import numpy as np
+
+import sqlalchemy
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, func
+
+from flask import Flask, jsonify
 
 
 #################################################
 # Database Setup
 #################################################
-# database_path = "/Users/jonathanrocha/Desktop/SQL Alchemy/Resources/hawaii.sqlite"
-# engine = create_engine(f"sqlite:///{database_path}")
+database_path = "/Users/jonathanrocha/Desktop/SQL Alchemy/Resources/hawaii.sqlite"
+engine = create_engine(f"sqlite:///{database_path}")
 
 
 # # reflect an existing database into a new model
-# Base = automap_base()
+Base = automap_base()
 # # reflect the tables
-# Base.prepare(engine, reflect=True)
+Base.prepare(engine, reflect=True)
 
 # # Save reference to the table
-# Hawaii = Base.classes.hawaii
+#Hawaii = Base.classes.hawaii 
+Measurement=Base.classes.measurement
+Station=Base.classes.station
 
 #################################################
 # Flask Setup
@@ -29,57 +38,64 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     print("Server request received for 'Home' page")
-    return "Welcome to the page about Hawaii"
+    return (f"Welcome to the page about Hawaii <br/>"
+            f"Available Routes:<br/>"
+            f"/api/v1.0/precipitation <br/>"
+            f"/api/v1.0/stations<br/>"
+            f"/api/v1.0/tobs<br/>"
+            f"/api/v1.0/<start><br/>"
+            f"/api/v1.0/<end><br/>")
 
-@app.route("/about")
-def about():
+@app.route("/api/v1.0/precipitation")
+def precipitation():
+    print("Server received request for 'Precipitation' page...")
+
+    #Create Session
+    session = Session(engine)
+
+    #Query for Precp data
+    #prcp_query=session.query(Measurement.prcp,Measurement.date).filter(func.DATE(Measurement.date)>='2017-01-01')
+    sel = [Measurement.date,Measurement.prcp
+      ]
+    prcp_query = session.query(*sel).\
+    filter(func.DATE(Measurement.date)>='2017-01-01').\
+    group_by(Measurement.date)
+
+    #Close session
+    session.close()
+
+    #Convert to dictionary
+    dates_prcp=[]
+
+    for prcp,date in prcp_query:
+        data_values={}
+        data_values["prcp"]=prcp
+        data_values["date"]=date
+        dates_prcp.append(data_values)
+
+    return jsonify(dates_prcp)
+
+@app.route("/api/v1.0/stations")
+def stations():
     print("Server received request for 'About' page...")
     return "Welcome to my 'About' page!"
 
+@app.route("/api/v1.0/tobs")
+def tobs():
+    print("Server received request for 'About' page...")
+    return "Welcome to my 'About' page!"
+
+@app.route("/api/v1.0/start")
+def start():
+    print("Server received request for 'About' page...")
+    return "Welcome to my 'About' page!"
+
+@app.route("/api/v1.0/end")
+def end():
+    print("Server received request for 'About' page...")
+    return "Welcome to my 'About' page!"
 
 if __name__ == "__main__":
     app.run(debug=True)
 
 
-# @app.route("/api/v1.0/names")
-# def names():
-#     # Create our session (link) from Python to the DB
-#     session = Session(engine)
-
-#     """Return a list of all passenger names"""
-#     # Query all passengers
-#     results = session.query(Passenger.name).all()
-
-#     session.close()
-
-#     # Convert list of tuples into normal list
-#     all_names = list(np.ravel(results))
-
-#     return jsonify(all_names)
-
-
-# @app.route("/api/v1.0/passengers")
-# def passengers():
-#     # Create our session (link) from Python to the DB
-#     session = Session(engine)
-
-#     """Return a list of passenger data including the name, age, and sex of each passenger"""
-#     # Query all passengers
-#     results = session.query(Passenger.name, Passenger.age, Passenger.sex).all()
-
-#     session.close()
-
-#     # Create a dictionary from the row data and append to a list of all_passengers
-#     all_passengers = []
-#     for name, age, sex in results:
-#         passenger_dict = {}
-#         passenger_dict["name"] = name
-#         passenger_dict["age"] = age
-#         passenger_dict["sex"] = sex
-#         all_passengers.append(passenger_dict)
-
-#     return jsonify(all_passengers)
-
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
