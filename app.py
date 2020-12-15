@@ -117,7 +117,7 @@ def tobs():
     return jsonify(tobs)
 
 
-@app.route("/api/v1.0/<start>")
+@app.route("/api/v1.0/<date>")
 def daily_normals(date):
     print("Server received request for 'Start Date'page")
     session=Session(engine)
@@ -134,12 +134,12 @@ def daily_normals(date):
     
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
-    return session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == date).all()
+    return jsonify(session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == date).all()
+    )  
 
-    session.close()
 
 @app.route("/api/v1.0/<start>/<end>")
-def calc_temps(start_date, end_date):
+def calc_temps(start, end):
     """TMIN, TAVG, and TMAX for a list of dates.
     
     Args:
@@ -149,9 +149,10 @@ def calc_temps(start_date, end_date):
     Returns:
         TMIN, TAVE, and TMAX
     """
-    
-    return session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
-        filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+    session=Session(engine)
+    return jsonify(session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+    )
 
 
 if __name__ == "__main__":
