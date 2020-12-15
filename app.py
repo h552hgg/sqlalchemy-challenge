@@ -117,54 +117,42 @@ def tobs():
     return jsonify(tobs)
 
 
-@app.route("/api/v1.0/<key>/<value>")
-def start(key,value):
-    print("Server received request for 'Start Search' page...")
-
-    #Create Session
+@app.route("/api/v1.0/<start>")
+def daily_normals(date):
+    print("Server received request for 'Start Date'page")
     session=Session(engine)
-    #Query
-    temp = [Measurement.id, 
-       func.min(Measurement.tobs), 
-       func.max(Measurement.tobs), 
-       func.avg(Measurement.tobs)]
-    temp_find = session.query(*temp)
 
-    #Close session
+    """Daily Normals.
+    
+    Args:
+        date (str): A date string in the format '%m-%d'
+        
+    Returns:
+        A list of tuples containing the daily normals, tmin, tavg, and tmax
+    
+    """
+    
+    sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
+
+    return session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == date).all()
+
     session.close()
-
-    #for x in temp_find:
-        #if x[key] == value:
-            #return jsonify(x)
-
-    #return jsonify({"error": f"Character with key '{key}' with value '{value}' not found."}), 404
-    return jsonify(temp_find)
 
 @app.route("/api/v1.0/<start>/<end>")
-def end():
-    print("Server received request for 'About' page...")
-    return "Welcome to my 'About' page!"
+def calc_temps(start_date, end_date):
+    """TMIN, TAVG, and TMAX for a list of dates.
+    
+    Args:
+        start_date (string): A date string in the format %Y-%m-%d
+        end_date (string): A date string in the format %Y-%m-%d
+        
+    Returns:
+        TMIN, TAVE, and TMAX
+    """
+    
+    return session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+        filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
 
-
-
-
-@app.route("/api/v1.0/trial")
-def trial():
-    print("Server received request for 'trial' page...")
- #Create Session
-    session=Session(engine)
-    #Query
-    temp = [Measurement.station, 
-       func.min(Measurement.tobs), 
-       func.max(Measurement.tobs), 
-       func.avg(Measurement.tobs)]
-    temp_find = session.query(*temp).all()
-
-    #Close session
-    session.close()
-
-
-    return jsonify(temp_find)
 
 if __name__ == "__main__":
     app.run(debug=True)
