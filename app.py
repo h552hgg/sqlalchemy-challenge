@@ -129,6 +129,8 @@ def tobs():
 @app.route("/api/v1.0/<start>")
 def daily_normals(start):
     print("Server received request for 'Start Date'page")
+
+    #Create Session
     session=Session(engine)
 
     """Daily Normals.
@@ -140,9 +142,9 @@ def daily_normals(start):
         A list of tuples containing the daily normals, tmin, tavg, and tmax
     
     """
-    
+    #Create a dictionary to hold the values and match with inputs by the user
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
-
+    #Return using filter that matches the user input
     return jsonify(session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == start).all()
     )  
 
@@ -158,7 +160,9 @@ def calc_temps(start, end):
     Returns:
         TMIN, TAVE, and TMAX
     """
+    #Create Session
     session=Session(engine)
+    #Return by filtering the dates by the user and running functions 
     return jsonify(session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
         filter(Measurement.date >= start).filter(Measurement.date <= end).all()
     )
