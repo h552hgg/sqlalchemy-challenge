@@ -107,13 +107,16 @@ def tobs():
 
     #Use a key to establish a year timeframe from datetime
     query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
     #Query data
-    sel_data = [Measurement.station,Measurement.date,
-       func.max(Measurement.tobs)]
+    sel_data =[Measurement.station,
+        func.count(Measurement.station),
+        func.min(Measurement.tobs), 
+        func.max(Measurement.tobs), 
+        func.avg(Measurement.tobs)]
     tobs = session.query(*sel_data).\
-        filter((Measurement.date)>=query_date).\
-        group_by(Measurement.station).\
-        order_by(func.count(Measurement.tobs).desc()).all()
+    group_by(Measurement.station).\
+    order_by(func.count(Measurement.tobs).desc()).first()
 
     #Close Session
     session.close()
@@ -123,8 +126,8 @@ def tobs():
     return jsonify(tobs)
 
 
-@app.route("/api/v1.0/<date>")
-def daily_normals(date):
+@app.route("/api/v1.0/<start>")
+def daily_normals(start):
     print("Server received request for 'Start Date'page")
     session=Session(engine)
 
@@ -140,7 +143,7 @@ def daily_normals(date):
     
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
 
-    return jsonify(session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == date).all()
+    return jsonify(session.query(*sel).filter(func.strftime( '%Y-%m-%d', Measurement.date) == start).all()
     )  
 
 
