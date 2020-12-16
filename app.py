@@ -4,7 +4,7 @@ import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
+import datetime as dt
 from flask import Flask, jsonify
 
 
@@ -52,15 +52,18 @@ def precipitation():
     #Create Session
     session = Session(engine)
 
+    #Use a key to establish a year timeframe from datetime
+    query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
     #Query for Precp data
     #Create a one line query for troubleshooting 
     #prcp_query=session.query(Measurement.prcp,Measurement.date).filter(func.DATE(Measurement.date)>='2017-01-01')
-
+    
     # Use a dictionary to gather the data and organize it
     sel = [Measurement.date,Measurement.prcp
       ]
     prcp_query = session.query(*sel).\
-    filter(func.DATE(Measurement.date)>='2017-01-01').\
+    filter(func.DATE(Measurement.date)>=query_date).\
     group_by(Measurement.date)
 
     #Close session
@@ -102,12 +105,15 @@ def tobs():
     #Create Session
     session=Session(engine)
 
+    #Use a key to establish a year timeframe from datetime
+    query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
     #Query data
     sel_data = [Measurement.station,Measurement.date,
        func.max(Measurement.tobs)]
     tobs = session.query(*sel_data).\
-    filter(func.DATE(Measurement.date)>='2016-01-01').\
-    order_by(Measurement.tobs.desc()).all()
+        filter((Measurement.date)>=query_date).\
+        group_by(Measurement.station).\
+        order_by(func.count(Measurement.tobs).desc()).all()
 
     #Close Session
     session.close()
