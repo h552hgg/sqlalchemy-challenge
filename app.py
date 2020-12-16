@@ -21,7 +21,7 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # # Save reference to the table
-#Hawaii = Base.classes.hawaii 
+
 Measurement=Base.classes.measurement
 Station=Base.classes.station
 
@@ -72,7 +72,7 @@ def precipitation():
     #Convert to dictionary
     dates_prcp=[]
 
-    for prcp,date in prcp_query:
+    for date,prcp in prcp_query:
         data_values={}
         data_values["prcp"]=prcp
         data_values["date"]=date
@@ -133,15 +133,7 @@ def daily_normals(start):
     #Create Session
     session=Session(engine)
 
-    """Daily Normals.
-    
-    Args:
-        date (str): A date string in the format '%m-%d'
-        
-    Returns:
-        A list of tuples containing the daily normals, tmin, tavg, and tmax
-    
-    """
+   
     #Create a dictionary to hold the values and match with inputs by the user
     sel = [func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)]
     #Return using filter that matches the user input
@@ -151,15 +143,7 @@ def daily_normals(start):
 
 @app.route("/api/v1.0/<start>/<end>")
 def calc_temps(start, end):
-    """TMIN, TAVG, and TMAX for a list of dates.
     
-    Args:
-        start_date (string): A date string in the format %Y-%m-%d
-        end_date (string): A date string in the format %Y-%m-%d
-        
-    Returns:
-        TMIN, TAVE, and TMAX
-    """
     #Create Session
     session=Session(engine)
     #Return by filtering the dates by the user and running functions 
