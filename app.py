@@ -59,7 +59,7 @@ def precipitation():
     #Create a one line query for troubleshooting 
     #prcp_query=session.query(Measurement.prcp,Measurement.date).filter(func.DATE(Measurement.date)>='2017-01-01')
     
-    # Use a dictionary to gather the data and organize it
+    # Use a list to gather the data and organize it
     sel = [Measurement.date,Measurement.prcp
       ]
     prcp_query = session.query(*sel).\
